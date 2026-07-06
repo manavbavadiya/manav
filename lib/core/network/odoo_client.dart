@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
@@ -182,6 +183,28 @@ class OdooClient {
       'kwargs': kwargs,
     });
     return result as T;
+  }
+
+  /// Fetch raw bytes from an authenticated Odoo endpoint — used for
+  /// PDF report downloads. The Dio jar attaches session_id
+  /// automatically, so callers don't need to worry about cookies.
+  Future<Uint8List> downloadBytes(String path) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        path,
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: true,
+        ),
+      );
+      final data = response.data;
+      if (data == null) {
+        throw ServerFailure('Empty response');
+      }
+      return Uint8List.fromList(data);
+    } on DioException catch (e) {
+      throw ServerFailure(_friendlyDioMessage(e));
+    }
   }
 
   /// Fetch the HTML body of an authenticated Odoo page. Used by

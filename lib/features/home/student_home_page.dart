@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show Directory, File;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -6,6 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../core/network/odoo_client.dart';
 import '../../injection_container.dart';
@@ -441,6 +443,38 @@ class _SchoolHeader extends StatelessWidget {
   final int? studentId;
   final String? studentName;
 
+  /// Save [bytes] as a PDF to a user-visible location and return the
+  /// path we ended up writing to. Tries the shared Android Downloads
+  /// folder first; falls back to the app's own documents directory
+  /// when the emulated Download path isn't writable (iOS, sandboxed
+  /// Android storage).
+  static Future<String> _saveNativePdf(
+    Uint8List bytes,
+    String filename,
+  ) async {
+    // Prefer the shared Downloads directory so the user finds the PDF
+    // in their phone's file manager.
+    for (final path in [
+      '/storage/emulated/0/Download',
+      '/sdcard/Download',
+    ]) {
+      final dir = Directory(path);
+      if (await dir.exists()) {
+        try {
+          final file = File('${dir.path}/$filename');
+          await file.writeAsBytes(bytes, flush: true);
+          return file.path;
+        } catch (_) {
+          // Permission denied on newer Android — fall through.
+        }
+      }
+    }
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/$filename');
+    await file.writeAsBytes(bytes, flush: true);
+    return file.path;
+  }
+
   /// First alphabetic character of [name], upper-cased. Falls back to
   /// `?` so the ID-card silhouette always has something inside.
   static String _initial(String? name) {
@@ -451,30 +485,50 @@ class _SchoolHeader extends StatelessWidget {
     return '?';
   }
 
-  void _openIdCard(BuildContext context) {
+  Future<void> _openIdCard(BuildContext context) async {
     final id = studentId;
     if (id == null) return; // Student record not loaded yet.
     final url = '/report/pdf/edu_student_mgmt.report_student_id_card/$id';
-    // Filename uses the student's own name so the download tray shows
-    // "Susan David Vyas.pdf" instead of a generic "ID_Card.pdf".
-    // Sanitise: strip anything that isn't safe in a filesystem name.
     final safe = (studentName ?? 'ID Card')
         .replaceAll(RegExp(r'[<>:"/\\|?*]+'), '')
         .trim();
     final filename = '${safe.isEmpty ? 'ID Card' : safe}.pdf';
-    // Web: open the PDF in a new tab (browser downloads or previews it
-    // via its built-in PDF viewer). Native: fall through to an
-    // embedded WebActionPage — webview_flutter surfaces the intent
-    // dialog for external PDF viewers.
     if (kIsWeb) {
-      downloadPdf(url, filename: filename);
+      await downloadPdf(url, filename: filename);
       return;
     }
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => WebActionPage(title: 'ID Card', path: url),
+    // Native (Android APK / iOS): fetch the PDF bytes via Dio (session
+    // cookie is already attached by OdooClient's jar) and drop them
+    // straight into a shared Downloads directory so the file shows up
+    // in the phone's file manager without bouncing through a WebView.
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.showSnackBar(
+      const SnackBar(
+        content: Text('Downloading ID Card…'),
+        duration: Duration(seconds: 2),
       ),
     );
+    try {
+      final bytes = await sl<OdooClient>().downloadBytes(url);
+      final saved = await _saveNativePdf(bytes, filename);
+      if (context.mounted) {
+        messenger?.showSnackBar(
+          SnackBar(
+            content: Text('Saved to $saved'),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        messenger?.showSnackBar(
+          SnackBar(
+            content: Text('Could not download: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   @override
