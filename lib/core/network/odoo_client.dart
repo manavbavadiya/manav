@@ -184,6 +184,25 @@ class OdooClient {
     return result as T;
   }
 
+  /// Fetch the HTML body of an authenticated Odoo page. Used by
+  /// portal-only widgets that need to scrape numbers rendered by
+  /// OpenEducat's `/my/*` templates when the underlying models are
+  /// ACL-denied for direct JSON-RPC (`edu.attendance`, etc.).
+  Future<String> fetchHtml(String path) async {
+    try {
+      final response = await _dio.get<String>(
+        path,
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {'Accept': 'text/html'},
+        ),
+      );
+      return response.data ?? '';
+    } on DioException catch (e) {
+      throw ServerFailure(_friendlyDioMessage(e));
+    }
+  }
+
   Future<dynamic> _post(String path, Map<String, dynamic> params) async {
     try {
       final body = jsonEncode({

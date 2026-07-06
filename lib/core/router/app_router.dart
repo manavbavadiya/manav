@@ -92,6 +92,10 @@ typedef PortalPathEntry = ({
 });
 
 const _portalPaths = <String, PortalPathEntry>{
+  // URLs verified against OpenEducat addons in
+  // v19/odoo-education-mgmt-addons/*/controllers/*.py — plural where
+  // the addon uses plural, and pointing at /my/invoices for fees
+  // because that's where edu_student_fee splices its fee rows in.
   'attendance': (
     title: 'Attendance',
     model: 'edu.attendance',
@@ -107,19 +111,19 @@ const _portalPaths = <String, PortalPathEntry>{
   'notice': (
     title: 'Circulars',
     model: 'edu.circular',
-    portalPath: '/my/circular',
+    portalPath: '/my/circulars',
     path: null,
   ),
   'remarks': (
     title: 'Queries & Complaints',
     model: 'edu.query',
-    portalPath: '/my/query',
+    portalPath: '/my/queries',
     path: null,
   ),
   'fees': (
     title: 'Your Fees',
     model: 'edu.student.fee',
-    portalPath: '/my/fees',
+    portalPath: '/my/invoices',
     path: null,
   ),
   'activity': (
@@ -143,7 +147,7 @@ const _portalPaths = <String, PortalPathEntry>{
   'meetings': (
     title: 'Parents Meetings',
     model: 'edu.parents.meeting',
-    portalPath: '/my/parents_meeting',
+    portalPath: '/my/parents_meetings',
     path: null,
   ),
   'holidays': (
@@ -161,13 +165,13 @@ const _portalPaths = <String, PortalPathEntry>{
   'exam-results': (
     title: 'Exam Results',
     model: 'edu.exam.rank',
-    portalPath: '/my/exam_result',
+    portalPath: '/my/results',
     path: null,
   ),
   'certificates': (
     title: 'Certificates',
     model: 'edu.exam.rank',
-    portalPath: '/my/certificate',
+    portalPath: '/my/certificates',
     path: null,
   ),
   'students': (
@@ -179,8 +183,8 @@ const _portalPaths = <String, PortalPathEntry>{
   'profile': (
     title: 'Student Profile',
     model: null,
-    portalPath: null,
-    path: '/my/account',
+    portalPath: '/my/student',
+    path: '/my/student',
   ),
   'addresses': (
     title: 'Addresses',
@@ -203,13 +207,13 @@ const _portalPaths = <String, PortalPathEntry>{
   'exam': (
     title: 'Exams',
     model: 'edu.exam.session',
-    portalPath: null,
+    portalPath: '/my/exams',
     path: null,
   ),
   'competitions': (
     title: 'Competitions',
     model: 'edu.exam.competition.match',
-    portalPath: null,
+    portalPath: '/my/competitions',
     path: null,
   ),
 };

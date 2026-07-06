@@ -120,6 +120,107 @@ _EMBED_CSS = (
     b"   color: #7F8CA0;"
     b"   text-transform: capitalize;"
     b"   margin-right: 8px; }"
+    # ── Portal tables (/my/*): stack rows so they fit mobile ──────
+    # OpenEducat portal LIST templates (holidays, homework, etc.) use
+    # plain Bootstrap `.table`. On narrow viewports the columns
+    # overflow off-screen and the user has to scroll. Fold each row
+    # into a labeled stack. `.table-borderless` and `.table-sm` are
+    # excluded because those variants are used for *detail views*
+    # (key/value pairs on /my/student) which should keep the label +
+    # value inline, not fan out into boxes.
+    b"#wrapwrap { overflow-x: hidden !important; }"
+    b"#wrapwrap .table-responsive { overflow: visible !important; }"
+    b"#wrapwrap table.table:not(.table-borderless):not(.table-sm)"
+    b" { display: block !important; width: 100% !important;"
+    b"   table-layout: fixed !important; }"
+    b"#wrapwrap table.table:not(.table-borderless):not(.table-sm) thead"
+    b" { display: none !important; }"
+    b"#wrapwrap table.table:not(.table-borderless):not(.table-sm) tbody"
+    b" { display: block !important; width: 100% !important; }"
+    b"#wrapwrap table.table:not(.table-borderless):not(.table-sm) tbody tr"
+    b" { display: block !important; width: auto !important;"
+    b"   background: #fff !important;"
+    b"   border: 1px solid #E1E5EB !important;"
+    b"   border-radius: 8px !important;"
+    b"   margin: 8px 0 !important;"
+    b"   padding: 10px 14px !important; }"
+    b"#wrapwrap table.table:not(.table-borderless):not(.table-sm) tbody td"
+    b" { display: block !important; width: 100% !important;"
+    b"   padding: 4px 0 !important;"
+    b"   border: none !important;"
+    b"   white-space: normal !important;"
+    b"   word-break: break-word !important;"
+    b"   text-align: left !important; }"
+    # ── Detail tables (.table-borderless / .table-sm): hide empty
+    # value rows so labels like "Blood Group:" don't appear when the
+    # student's DB row has no value for that column.
+    b"#wrapwrap table.table-borderless tr:has(td:last-child:empty),"
+    b" #wrapwrap table.table-sm tr:has(td:last-child:empty)"
+    b" { display: none !important; }"
+    # ── Student portal avatar tile: brand color + white user icon
+    # instead of the generic Bootstrap silhouette when image_1920 is
+    # empty. Targets the `.bg-light.rounded` container the template
+    # uses when no photo is available.
+    b"#wrapwrap .bg-light.rounded.mx-auto"
+    b" { background: linear-gradient(135deg, #139794, #0B7C79) !important;"
+    b"   border: none !important;"
+    b"   color: #ffffff !important; }"
+    b"#wrapwrap .bg-light.rounded.mx-auto svg,"
+    b" #wrapwrap .bg-light.rounded.mx-auto i,"
+    b" #wrapwrap .bg-light.rounded.mx-auto .fa"
+    b" { color: #ffffff !important;"
+    b"   fill: #ffffff !important;"
+    b"   opacity: 0.95 !important; }"
+    # ── /my/security noise reduction: hide advanced blocks (Passkeys,
+    # Revoke Sessions, Delete Account) and the useful-links / footer
+    # links so the page reads like the compact Addresses card.
+    b"#wrapwrap #o_wsale_passkeys_container,"
+    b" #wrapwrap [id^='revoke'],"
+    b" #wrapwrap [id*='revoke_session'],"
+    b" #wrapwrap [id*='delete_account'],"
+    b" #wrapwrap .o_portal_useful_links,"
+    b" #wrapwrap .o_portal_useful_link,"
+    b" #wrapwrap .o_footer_socials,"
+    b" #wrapwrap .o_portal_footer,"
+    b" #wrapwrap section.o_portal_useful_links_section,"
+    b" #wrapwrap div.o_portal_useful_links"
+    b" { display: none !important; }"
+    # ── /my/account (Addresses) form: hide business-only fields the
+    # student never fills — VAT, Company Name, Apartment/Suite. Keeps
+    # the form compact and student-appropriate. Uses :has() to hide
+    # the containing wrapper.
+    b"#wrapwrap form div:has(> label[for*='company_name']),"
+    b" #wrapwrap form div:has(> label[for='company_name']),"
+    b" #wrapwrap form div:has(> label[for*='vat']),"
+    b" #wrapwrap form div:has(> label[for='vat']),"
+    b" #wrapwrap form div:has(> label[for*='street2']),"
+    b" #wrapwrap form div:has(> input[name='company_name']),"
+    b" #wrapwrap form div:has(> input[name='vat']),"
+    b" #wrapwrap form div:has(> input[name='street2'])"
+    b" { display: none !important; }"
+    # ── /my/competitions polish: make the "+ New Challenge" link look
+    # like a button, tighten the tables into legible mobile cards,
+    # style Accept buttons, and give each section a heading gap.
+    b"#wrapwrap a[href*='/my/competitions/new']"
+    b" { display: inline-block !important;"
+    b"   padding: 10px 18px !important;"
+    b"   background: #1F82BC !important;"
+    b"   color: #fff !important;"
+    b"   border-radius: 8px !important;"
+    b"   text-decoration: none !important;"
+    b"   font-weight: 600 !important;"
+    b"   margin: 8px 0 16px 0 !important; }"
+    b"#wrapwrap h2, #wrapwrap h3"
+    b" { margin-top: 20px !important;"
+    b"   color: #16324F !important; }"
+    b"#wrapwrap .btn-primary, #wrapwrap button[type='submit']"
+    b" { background: #17A67A !important;"
+    b"   border-color: #17A67A !important;"
+    b"   color: #fff !important; }"
+    # (Removed the over-broad `.container > .row` card wrapping rule —
+    # it double-wrapped the Addresses page's "Delivery address" /
+    # "Billing address" rows and clobbered their native layout. The
+    # per-section CSS elsewhere is enough.)
     b"</style>"
 )
 

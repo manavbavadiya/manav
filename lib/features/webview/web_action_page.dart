@@ -203,6 +203,12 @@ class _WebActionPageState extends State<WebActionPage> {
     // visible.
     final isPortalRoute = _path?.startsWith('/my/') ?? false;
     final displayTitle = isPortalRoute ? '' : resolvedTitle;
+    // Odoo's global `search_count` runs against the backend model and
+    // often disagrees with what the portal template actually shows
+    // (its domain is filtered further by student ownership). Only
+    // display the badge when the iframe is a backend /odoo/action-N
+    // page — those match one-for-one.
+    final showCountBadge = !isPortalRoute && _count != null && _count! > 0;
     return Scaffold(
       key: _scaffoldKey,
       drawer: const OdooAppDrawer(),
@@ -224,7 +230,7 @@ class _WebActionPageState extends State<WebActionPage> {
             Flexible(
               child: Text(displayTitle, overflow: TextOverflow.ellipsis),
             ),
-            if (_count != null) ...[
+            if (showCountBadge) ...[
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -253,11 +259,14 @@ class _WebActionPageState extends State<WebActionPage> {
             tooltip: 'Refresh',
             onPressed: _refresh,
           ),
-          IconButton(
-            icon: const Icon(Icons.menu),
-            tooltip: 'Menu',
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          ),
+          // Only surface the modules drawer on admin action pages —
+          // portal users have nothing to browse there.
+          if (!isPortalRoute)
+            IconButton(
+              icon: const Icon(Icons.menu),
+              tooltip: 'Menu',
+              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
         ],
       ),
       body: _lookupFailed
